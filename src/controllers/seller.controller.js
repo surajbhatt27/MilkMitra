@@ -186,8 +186,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         }
 
         const {accessToken, newRefreshToken} = await generateAccessAndRefreshToken(seller._id)
-        seller.refreshToken = newRefreshToken;
-        await seller.save({ validateBeforeSave: false });
 
         return res
                 .status(200)
@@ -206,9 +204,33 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 })
 
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const {oldPassword, newPassword} = req.body;
+
+    if (!oldPassword || !newPassword) {
+        throw new ApiError(400, "Old and new passwords are required");
+    }
+
+    const seller = await Seller.findById(req.seller?._id);
+
+    const isPasswordValid = await seller.isPasswordCorrect(oldPassword)
+
+    if(!isPasswordValid) {
+        throw new ApiError(400, "invalid old password")
+    }
+
+    seller.password = newPassword
+    await seller.save();
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Password changed successfully"));
+})
+
 export {
     registerSeller,
     loggedInSeller,
     logOutSeller,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentPassword
 }
