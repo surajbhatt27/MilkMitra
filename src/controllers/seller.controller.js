@@ -3,6 +3,9 @@ import {ApiError} from "../utils/ApiError.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
 import {Seller} from "../models/seller.model.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import { validateHeaderName } from "http";
 
 const generateAccessAndRefreshToken = async (sellerId) => {
     try {
@@ -29,10 +32,10 @@ const registerSeller = asyncHandler(async (req, res) => {
     // check for seller creation 
     // return response
 
-    const {sellerName, dairyCode, phoneNumber, password} = req.body;
+    const {sellerName, dairyCode, phoneNumber, email, password} = req.body;
 
     if (
-        [sellerName, dairyCode, phoneNumber, password].some(
+        [sellerName, dairyCode, phoneNumber,email, password].some(
             (field) => field?.trim === ""
         )
     ) {
@@ -40,17 +43,18 @@ const registerSeller = asyncHandler(async (req, res) => {
     }
 
     const existSeller = await Seller.findOne({
-        $or: [{phoneNumber}, {dairyCode}]
+        $or: [{email}, {dairyCode}]
     })
 
     if(existSeller) {
-        throw new ApiError(400, "Seller with this dairy code and phone number already exist")
+        throw new ApiError(400, "Seller with this dairy code and email already exist")
     }
 
     const seller = await Seller.create({
         sellerName,
         dairyCode,
         phoneNumber,
+        email,
         password
     })
 
@@ -75,14 +79,14 @@ const loggedInSeller = asyncHandler(async (req, res) => {
     // find the user
     // send cookie
 
-    const {phoneNumber, dairyCode, password} = req.body;
+    const {email, phoneNumber, password} = req.body;
 
-    if(!dairyCode || !phoneNumber) {
-        throw new ApiError(400, "dairy code and password required");
+    if(!email || !phoneNumber) {
+        throw new ApiError(400, "credentails required");
     }
 
     const seller = await Seller.findOne({
-        $or: [{dairyCode}, {phoneNumber}]
+        $or: [{email}, {phoneNumber}]
     })
 
     if(!seller) {
@@ -227,10 +231,115 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "Password changed successfully"));
 })
 
+const getCurrentSeller = asyncHandler(async (req, res) => {
+    return res.status(200).json(
+        new ApiResponse(200, req.seller, "Current seller fetched successfully")
+    );
+});
+
+const updateSellerProfile = asyncHandler(async(req, res) => {
+
+    const {
+        newSellerName,
+        newDairyCode,
+        newPhoneNumber,
+        newEmail,
+        newDairyName,
+        newLanguagePreference
+    } = req.body;  
+
+    const seller = await Seller.findById(req.seller?._id);
+    if (!seller) {
+        throw new ApiError(404, "Seller not found");
+    }
+
+    if (newSellerName) seller.sellerName = newSellerName;
+    if (newDairyCode) seller.dairyCode = newDairyCode;
+    if (newPhoneNumber) seller.phoneNumber = newPhoneNumber;
+    if (newEmail) seller.email = newEmail;
+    if (newDairyName) seller.dairyName = newDairyName;
+    if (newLanguagePreference) seller.languagePrefrence = newLanguagePreference;
+
+    await seller.save({validateBeforeSave: false});
+    const updatedSeller = await Seller.findById(seller._id).select("-password -refreshToken");
+
+    return res
+            .status(200)
+            .json(new ApiResponse(200, updateSellerProfile, "Seller profile updated"));
+})
+
+const forgetPassword = asyncHandler(async(req, res) => {
+    const {email} = req.body;
+
+    if(!email) {
+        throw new ApiError(401, "email is required");
+    }
+
+    const seller = await Seller.findOne({email});
+
+    if(!seller) {
+        throw new ApiError(401, "Invalid email address");
+    }
+
+    const randomToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+                            .createHash("sha256")
+                            .update(randomToken)
+                            .digest("hex");
+
+    seller.passwordResetToken = hashedToken;
+    seller.passwordResetExpiry = Date.now() + 5*60*1000;
+    await seller.save({validateBeforeSave: false})
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${randomToken}`;
+    const subject = "Reset your password";
+    const message = `Click this link to reset your password: ${resetUrl}\n\nIf you didn't request this, please ignore.`;
+
+    await sendEmail({
+        to: seller.email,
+        subject,
+        text: message
+    });
+
+    return res
+            .status(200)
+            .json(new ApiResponse(200, {}, "Password reset email sent"));
+})
+
+const resetPassword = asyncHandler(async(req, res) => {
+
+    const {token, newPassword} = req.body;
+    const hashedToken = crypto
+                            .createHash("sha256")
+                            .update(token)
+                            .digest("hex");
+
+    const seller = await Seller.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetExpiry: { $gt: Date.now() }
+    });
+
+    if(!seller) {
+        throw new ApiError(401, "Token is expired or Invalid");
+    }
+    seller.password = newPassword
+    seller.passwordResetToken = undefined;
+    seller.passwordResetExpiry = undefined;
+    await seller.save({validateBeforeSave: false})
+
+    return res
+            .status(200)
+            .json(new ApiResponse(200, {}, "Password is changed"));
+})
+
 export {
     registerSeller,
     loggedInSeller,
     logOutSeller,
     refreshAccessToken,
-    changeCurrentPassword
+    changeCurrentPassword,
+    getCurrentSeller,
+    updateSellerProfile,
+    forgetPassword,
+    resetPassword
 }

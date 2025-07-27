@@ -25,12 +25,12 @@ const sellerSchema = new Schema(
             type: String,
             lowercase: true,
             unique: true,
-            sparse: true
+            required: true
         },
         dairyName : {
             type: String
         },
-        languagePreference : {
+        languagePrefrence : {
             type: String,
             enum : ["Hindi", "English", "Marathi", "gujrati"],
             default: "English"
@@ -41,7 +41,15 @@ const sellerSchema = new Schema(
         },
         refreshToken: {
             type: String
-        }
+        },
+        otp: {
+            type: String
+        },
+        otpExpiry: {
+            type: Date
+        },
+        passwordResetToken: String,
+        passwordResetExpiry: Date
     }, 
     {
         timestamps: true
