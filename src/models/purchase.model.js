@@ -17,10 +17,13 @@ const purchaseSchema = new Schema(
             required: true,
             min: 1
         },
-        price: {
+        unitPrice: {
             type: Number,
             required: true,
             min: 0
+        },
+        totalAmount: {
+            type: Number
         },
         date: {
             type: Date,
@@ -35,5 +38,11 @@ const purchaseSchema = new Schema(
         timestamps: true
     }
 );
+
+purchaseSchema.pre("save", function (next) {
+    this.totalAmount = this.unitPrice * this.quantity;
+    next();
+});
+
 
 export const Purchase = mongoose.model("Purchase", purchaseSchema)
