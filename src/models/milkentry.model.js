@@ -35,7 +35,7 @@ const milkEntrySchema = new Schema(
             type: Number,
             required: true
         },
-        Bonus: {
+        bonus: {
             type: Number,
             required: true
         }

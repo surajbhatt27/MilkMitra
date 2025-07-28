@@ -6,7 +6,6 @@ import { application } from "express";
 
 
 const addMilkEntry = asyncHandler(async (req, res) => {
-    const milkEntry = await Seller.findById(req.seller._id);
     const {
         date = new Date(),
         time = new Date().toLocaleTimeString(),
@@ -23,7 +22,7 @@ const addMilkEntry = asyncHandler(async (req, res) => {
     }
 
     const newEntry = await MilkEntry.create({
-        code: req.seller._id,
+        sellerId: req.seller._id,
         date,
         time,
         slot,
@@ -43,7 +42,7 @@ const getMilkEntries = asyncHandler(async (req, res) => {
 
     const {date, month, year, slot} = req.query;
 
-    const filter = {code: req.seller._id};
+    const filter = {sellerId: req.seller._id};
 
     if(date) {
         filter.date = new Date(date);
