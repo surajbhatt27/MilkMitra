@@ -1,4 +1,4 @@
-import MilkEntry from "../models/milkentry.model.js";
+import {MilkEntry} from "../models/milkentry.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
@@ -79,9 +79,9 @@ const updateMilkEntry = asyncHandler(async (req, res) => {
         bonus
     } = req.body;
 
-    const milkEntry = await MilkEntry.find({
+    const milkEntry = await MilkEntry.findOne({
         _id: id,
-        code: req.seller._id
+        sellerId: req.seller._id
     });
 
     if (!milkEntry) {
@@ -109,7 +109,7 @@ const deleteMilkEntry = asyncHandler(async (req, res) => {
 
     const deleteEntry = await MilkEntry.findOneAndDelete({
         _id: id,
-        code: req.seller._id
+        sellerId: req.seller._id
     })
 
     if(!deleteEntry) {

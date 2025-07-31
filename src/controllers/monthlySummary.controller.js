@@ -17,7 +17,7 @@ const generateMonthlySummary = asyncHandler(async (req, res) => {
     const {
             month = defaultMonth,
             year = defaultYear
-    } = req.body;
+    } = req.body || {};
 
     const start = new Date(year, month-1, 1);
     const end = new Date(year, month, 0, 23, 59, 59);

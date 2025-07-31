@@ -12,13 +12,14 @@ const sellerSchema = new Schema(
             index: true
         },
         dairyCode : {
-            type: Number,
+            type: String,
             required : true, 
             unique : true
         },
-        phoneNumber : {
-            type: Number,
-            required : true, 
+        phoneNumber: {
+            type: String,
+            required: true,
+            match: /^[0-9]{10}$/, // ensures exactly 10 digits
             unique: true
         },
         email : {
@@ -59,7 +60,9 @@ const sellerSchema = new Schema(
 // hash password before saving.
 
 sellerSchema.pre("save", async function (next) {
-    if(!this.isModified("password")) return next();
+    if(!this.isModified("password")) {
+        return next();
+    }
     try{
         this.password = await bcrypt.hash(this.password, 10);
         next();
@@ -102,4 +105,4 @@ sellerSchema.methods.generateRefreshToken = function () {
     )
 }
 
-export const Seller = mongoose.model("Seller", sellerSchema)
+export const Seller = mongoose.models.Seller || mongoose.model("Seller", sellerSchema);

@@ -1,11 +1,12 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import {ApiError} from "../utils/ApiError.js";
-import {ApiResponse} from "../utils/ApiResponse.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/ApiError.js";
+import ApiResponse from "../utils/ApiResponse.js";
 import {Seller} from "../models/seller.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { validateHeaderName } from "http";
+import sendEmail from "../utils/sendEmail.js";
 
 const generateAccessAndRefreshToken = async (sellerId) => {
     try {
@@ -36,7 +37,7 @@ const registerSeller = asyncHandler(async (req, res) => {
 
     if (
         [sellerName, dairyCode, phoneNumber,email, password].some(
-            (field) => field?.trim === ""
+            (field) => field?.trim() === ""
         )
     ) {
         throw new ApiError(400, "All fields are required")

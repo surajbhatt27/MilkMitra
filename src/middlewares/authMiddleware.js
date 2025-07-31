@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import Seller from "../models/seller.model.js";
-import ApiError from "../utils/ApiError.js";
+import {Seller} from "../models/seller.model.js";
+import  ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 
@@ -11,7 +11,7 @@ const isAuthenticated = asyncHandler( async(req, res, next) => {
         token = req.cookies.accessToken;
     }
 
-    else if(req.header.authorization?.startWith("Bearer")) {
+    else if(req.headers.authorization?.startsWith("Bearer")) {
         token = req.headers.authorization.split(" ")[1];
     }
 

@@ -1,5 +1,5 @@
 import asyncHandler from "../utils/asyncHandler.js";
-import MilkEntry from "../models/milkentry.model.js"
+import {MilkEntry} from "../models/milkentry.model.js"
 import ApiResponse from "../utils/ApiResponse.js";
 
 const getTodaySummary = asyncHandler(async (req, res) => {
@@ -20,7 +20,7 @@ const getTodaySummary = asyncHandler(async (req, res) => {
     let totalAmount = 0;
     let totalBonus = 0;
 
-    todayEntries.forEarch(entry => {
+    todayEntries.forEach(entry => {
         totalMilk += entry.quantity;
         totalAmount += entry.total;
         totalBonus += entry.bonus || 0;
