@@ -22,6 +22,16 @@ import purchaseRouter from "./routes/purchase.route.js"
 import monthlySummaryRouter from "./routes/monthlySummary.route.js";
 import todaySummaryRouter from "./routes/todaySummary.route.js";
 
+// Welcome route for base url.
+app.get("/", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "🧀 Welcome to MilkMitra API 🐄✨. The backend is working perfectly!",
+        uptime: process.uptime().toFixed(0) + "s",
+        environment: process.env.NODE_ENV || "development"
+    });
+});
+
 //routes declaration
 app.use("/api/v1/seller", sellerRouter);
 app.use("/api/v1/milk", milkEntryRouter);
