@@ -21,6 +21,7 @@ import milkEntryRouter from "./routes/milkEntry.route.js";
 import purchaseRouter from "./routes/purchase.route.js"
 import monthlySummaryRouter from "./routes/monthlySummary.route.js";
 import todaySummaryRouter from "./routes/todaySummary.route.js";
+import annualSummaryRouter from "./routes/annualSummary.route.js";
 
 // Welcome route for base url.
 app.get("/", (req, res) => {
@@ -38,8 +39,7 @@ app.use("/api/v1/milk", milkEntryRouter);
 app.use("/api/v1/purchase", purchaseRouter);
 app.use("/api/v1/summary", monthlySummaryRouter);
 app.use("/api/v1/today", todaySummaryRouter);
-
-// For Invalid Endpoint
+app.use("/api/v1/annual-summary", annualSummaryRouter);
 app.use(notFound);
 app.use(errorHandler);
 
