@@ -32,10 +32,10 @@ const addPurchase = asyncHandler(async(req, res) => {
 })
 
 const getPurchase = asyncHandler(async (req, res) => {
-    const {itemName, startDate, endDate} = req.query;
-    const filter = {sellerId: req.seller._id};
+    const { itemName, startDate, endDate } = req.query;
+    const filter = { sellerId: req.seller._id };
 
-    if(itemName) {
+    if (itemName) {
         filter.itemName = new RegExp(itemName, "i");
     }
 
@@ -44,14 +44,23 @@ const getPurchase = asyncHandler(async (req, res) => {
             $gte: new Date(startDate),
             $lte: new Date(endDate)
         };
+    } else {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        filter.date = {
+            $gte: firstDay,
+            $lte: lastDay
+        };
     }
 
     const purchases = await Purchase.find(filter).sort({ date: -1 });
 
     return res
-            .status(200)
-            .json(new ApiResponse(200, purchases, "Purchase Items are fetched"));
-})
+        .status(200)
+        .json(new ApiResponse(200, purchases, "Purchase Items are fetched"));
+});
 
 const updatePurchase = asyncHandler(async (req, res) => {
     const {id} = req.params;
